@@ -40,14 +40,23 @@ A successful call returns the data requested in the query and a new one-time tok
 
 ## Generate the client certificate
 
-Generate a CSR with this command using the certificate subject data obtained with the CSR information: 
+Use the certificate subject data obtained with the CSR information. Remove commas separating the subject fields and prefix the fields with slashes. 
+
+```bash
+sub={SUBJECT_DATA}
+export SUBJECT="/${sub//,//}"
 ```
+
+Generate a CSR using the prepared certificate subject data.
+
+```bash
 openssl genrsa -out generated.key 2048
-openssl req -new -sha256 -out generated.csr -key generated.key -subj "{SUBJECT}"
+openssl req -new -sha256 -out generated.csr -key generated.key -subj $SUBJECT
 openssl base64 -in generated.csr
 ```
 
 Use the encoded CSR in this GraphQL mutation:
+
 ```graphql
 mutation {
     result: signCertificateSigningRequest(csr: "{BASE64_ENCODED_CSR}") {
@@ -57,6 +66,7 @@ mutation {
     }
 }
 ```
+
 Send the modified GraphQL mutation to the Connector URL including the one-time token fetched with the configuration in the `connector-token` header.
 
 The response contains a valid client certificate signed by the Kyma Certificate Authority (CA) and the CA certificate.

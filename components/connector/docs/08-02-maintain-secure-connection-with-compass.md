@@ -17,9 +17,10 @@ This guide shows you how to do that.
 
 ## Get the CSR information and configuration details from Kyma using the client certificate 
 
-To fetch the configuration, make a call to the Certificate-Secured Connector URL using the client certificate. 
+To fetch the configuration, make a call to the Certificate-Secured Connector URL using the client certificate and key. 
 The Certificate-Secured Connector URL is the `certificateSecuredConnectorURL` obtained when establishing a secure connection with Compass. 
 Send this query with the call:
+
 ```graphql
 query {
     result: configuration {
@@ -38,14 +39,24 @@ A successful call returns the data requested in the query.
 
 ## Renew the client certificate 
 
-Generate a CSR with this command using the certificate subject data obtained with the CSR information: 
+Use the certificate subject data obtained with the CSR information. Remove commas separating the subject fields and prefix the fields with slashes. 
+
+```bash
+sub={SUBJECT_DATA}
+export SUBJECT="/${sub//,//}"
 ```
+
+Generate a CSR with this command using the certificate subject data obtained with the CSR information: 
+
+> **CAUTION:** Be careful not to overwrite your old certificate and key while generating the new ones. You need the old ones to send with the request for certificate renewal. 
+
+```bash
 openssl genrsa -out generated.key 2048
-openssl req -new -sha256 -out generated.csr -key generated.key -subj "{SUBJECT}"
+openssl req -new -sha256 -out generated.csr -key generated.key -subj $SUBJECT
 openssl base64 -in generated.csr
 ```
 
-Send this GraphQL mutation with the encoded CSR to the Certificate-Secured Connector URL:
+Send this GraphQL mutation with the encoded CSR to the Certificate-Secured Connector URL using the old client certificate and key:
 
 ```graphql
 mutation {
